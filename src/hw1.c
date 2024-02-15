@@ -10,7 +10,7 @@ void print_packet_sf(unsigned char packet[])
 
     printf("Source Address: %d /n", bit_finder(packet, 0));
     printf("Destination Address: %d /n",  bit_finder(packet, 1));
-    printf("Source Port: %d /n" + bit_finder(packet, 2));
+    printf("Source Port: %d /n",  bit_finder(packet, 2));
     printf("Destination Port: %d /n" , bit_finder(packet, 3));
     printf("Fragment Offset: %d /n" , bit_finder(packet, 4));
     printf("Packet Length: %d /n", length);
@@ -111,15 +111,15 @@ unsigned char* payload_finder(unsigned char *packet, int length) {      //finds 
 
 unsigned int compute_checksum_sf(unsigned char packet[])
 {
-    int length = bit_finder(packet,5), sum = 0, checklength = bit_finder(packet,7);
+    int length = bit_finder(packet,5), sum = 0;//, checklength = bit_finder(packet,7);
     for(int i = 0; i < 10; i++){
         if(i != 7)
         sum += bit_finder(packet, i);
     }
-    unsigned char payload* = payload_finder(packet, length);
+    unsigned char *payload = payload_finder(packet, length);
     
-    for(int *i = 0; i<(length-15); i++){            // will this work?????
-        sum += payload[i++];
+    for(int *i = 0; *i<(length-15); i++){            // will this work?????
+        sum += payload[*i++];
     }
 
     return sum;
