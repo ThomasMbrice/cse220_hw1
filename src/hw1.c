@@ -113,7 +113,7 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
     bit_finder(packet, 8) + bit_finder(packet, 9);
 
     for(int i = 16; i < length; i+=4){
-        sum += abs((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
+        sum += (packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3];
     }
 
     return sum % ((1<<23)-1);
