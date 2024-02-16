@@ -7,20 +7,23 @@ void print_packet_sf(unsigned char packet[])
 {
     int length = bit_finder(packet, 5);
 
-    printf("Source Address: %d \n", bit_finder(packet, 0));
-    printf("Destination Address: %d \n",  bit_finder(packet, 1));
-    printf("Source Port: %d \n",  bit_finder(packet, 2));
-    printf("Destination Port: %d \n" , bit_finder(packet, 3));
-    printf("Fragment Offset: %d \n" , bit_finder(packet, 4));
-    printf("Packet Length: %d \n", length);
-    printf("Maximum Hop Count: %d \n" , bit_finder(packet, 6));
-    printf("Checksum: %d \n" , bit_finder(packet, 7));
-    printf("Compression Scheme: %d \n" , bit_finder(packet, 8));
-    printf("Traffic Class: %d \n" , bit_finder(packet, 9));
+    printf("Source Address: %d\n", bit_finder(packet, 0));
+    printf("Destination Address: %d\n",  bit_finder(packet, 1));
+    printf("Source Port: %d\n",  bit_finder(packet, 2));
+    printf("Destination Port: %d\n" , bit_finder(packet, 3));
+    printf("Fragment Offset: %d\n" , bit_finder(packet, 4));
+    printf("Packet Length: %d\n", length);
+    printf("Maximum Hop Count: %d\n" , bit_finder(packet, 6));
+    printf("Checksum: %d\n" , bit_finder(packet, 7));
+    printf("Compression Scheme: %d\n" , bit_finder(packet, 8));
+    printf("Traffic Class: %d\n" , bit_finder(packet, 9));
     printf("Payload: ");
 
    for(int i = 16; i < length; i+=4){                   //prints payload
-        printf("%d ", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3])); 
+        if(i+4 < length)
+        printf("%d ", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]));
+        else  
+        printf("%d", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3])); // same print just without a space
     }
 }
 
@@ -56,11 +59,11 @@ unsigned int bit_finder(unsigned char packet[], int section){
             transfer_one &= 0x0F; 
             return transfer_one;
         break;
-        case 4:                         //finds Fragment Offset ???
+        case 4:                        // frag offeseet (correct)
             transfer_one = packet[8];
             transfer_two = packet[9];
             transfer_two >>= 2;
-            return (transfer_one<<8) | transfer_two;
+            return (transfer_one<<6) | transfer_two;
         break;
         case 5:                     //finds Packet Length (correct)
             transfer_one = packet[9];

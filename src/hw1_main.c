@@ -1,11 +1,10 @@
+#include <stdio.h>
 #include "hw1.h"
 
-int  main() {
-    #include "packetize_array_sf_args01.h"
-	packetize_array_sf(array, sizeof(array) / sizeof(array[0]), actual_packets,
-			sizeof(actual_packets) / sizeof(actual_packets[0]), max_payload, src_addr, dest_addr, src_port, dest_port, 
-			maximum_hop_count, compression_scheme, traffic_class);
-	for (unsigned int i = 0; i < num_expected_packets; i++)
-        free(actual_packets[i]);
+int main() {
+    unsigned char packet[] = {
+			0x01,0xd2,0x08,0xa0,0xb4,0x11,0xaa,0xcd,0x11,0x00,0x01,0xca,0xde,0xad,0xb1,0xf3,0x00,0x84,0x5f,0xed,0xff,0xff,0x66,0x8f,0x05,0x88,0x81,0x92,
+		};
+    print_packet_sf(packet);
     return 0;
 }
