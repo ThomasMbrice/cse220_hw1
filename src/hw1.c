@@ -6,7 +6,7 @@ void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len);
 
 void print_packet_sf(unsigned char packet[])
 {
-    int length = bit_finder(packet, 5);
+    unsigned int length = bit_finder(packet, 5);
 
     printf("Source Address: %d\n", bit_finder(packet, 0));
     printf("Destination Address: %d\n",  bit_finder(packet, 1));
@@ -20,7 +20,7 @@ void print_packet_sf(unsigned char packet[])
     printf("Traffic Class: %d\n" , bit_finder(packet, 9));
     printf("Payload: ");
 
-   for(int i = 16; i < length; i+=4){                   //prints payload
+   for(unsigned int i = 16; i < length; i+=4){                   //prints payload
         if(i+4 < length)
         printf("%d ", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]));
         else  
@@ -29,7 +29,7 @@ void print_packet_sf(unsigned char packet[])
 }
 
 unsigned int bit_finder(unsigned char packet[], int section){
-    unsigned char transfer_one = 0,transfer_two = 0, transfer_three = 0, transfer_four = 0, sum = 0;
+    unsigned char transfer_one = 0,transfer_two = 0, transfer_three = 0, transfer_four = 0;
 
     switch(section){
         case 0:                         //finds Source Address (correct)
@@ -107,45 +107,46 @@ unsigned int bit_finder(unsigned char packet[], int section){
 
 unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 {
-    int length = bit_finder(packet,5), sum = 0, payload = 0;//, checklength = bit_finder(packet,7);
+    unsigned int length = bit_finder(packet,5), sum = 0;//, checklength = bit_finder(packet,7);
 
-    sum += bit_finder(packet, 0);
-    sum += bit_finder(packet, 1);
-    sum += bit_finder(packet, 2);
-    sum += bit_finder(packet, 3);
-    sum += bit_finder(packet, 4);           // ask TA this doesnt make sense
-    sum += bit_finder(packet, 5);
-    sum += bit_finder(packet, 6);
+    sum += (unsigned int)bit_finder(packet, 0);
+    sum += (unsigned int)bit_finder(packet, 1);
+    sum += (unsigned int)bit_finder(packet, 2);
+    sum += (unsigned int)bit_finder(packet, 3);
+    sum += (unsigned int)bit_finder(packet, 4);           // ask TA this doesnt make sense
+    sum += (unsigned int)bit_finder(packet, 5);
+    sum += (unsigned int)bit_finder(packet, 6);
     //skip checksum
-    sum += bit_finder(packet, 8);
-    sum += bit_finder(packet, 9);
+    sum += (unsigned int)bit_finder(packet, 8);
+    sum += (unsigned int)bit_finder(packet, 9);
 
-    for(int i = 16; i < length; i+=4){
-        sum += abs((int)(packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
+    for(unsigned int i = 16; i < length; i+=4){
+        sum += ((unsigned int)packet[i] << 24) | ((unsigned int)packet[i+1] << 16) 
+        | ((unsigned int)packet[i+2] << 8) | (unsigned int)packet[i+3];
     }
 
 
-    return (sum % ((1 << 23) - 1));
+    return (unsigned int)(sum % ((unsigned int)((1 << 23) - 1)));
 }
 
 
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
 {
-    int check1 = 0, offsetcheck = 0, offsetgrabber_indexer = 0, offseter = 0,
+    unsigned int offsetcheck = 0, offsetgrabber_indexer = 0, offseter = 0,
      array_indexer = 0, intcount = 0;     
     unsigned fragoffset_grabber[packets_len];
 
 
-    for(int e = 0; e < packets_len; e++){
+    for(unsigned int e = 0; e < packets_len; e++){
         
 
-        for(int i = 0; i < packets_len; i++){               //finds correct order of packets
+        for(unsigned int i = 0; i < packets_len; i++){               //finds correct order of packets
             fragoffset_grabber[i] =  bit_finder(packets[i],4);
         }
         
         bubble_sort(fragoffset_grabber, packets_len);               //sorts fragmantations  
 
-        for(int i = 0; i < packets_len; i++){                   //finds correct packet in order 0-n
+        for(unsigned int i = 0; i < packets_len; i++){                   //finds correct packet in order 0-n
             if(fragoffset_grabber[offsetgrabber_indexer] == bit_finder(packets[i],4)){
                 offsetgrabber_indexer++;
                 offseter = i;
@@ -155,7 +156,7 @@ unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets
 
         if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
 
-            for(int i = 16; i < bit_finder(packets[offseter],5); i+=4){    //creates values for  payload
+            for(unsigned int i = 16; i < bit_finder(packets[offseter],5); i+=4){    //creates values for  payload
             if(array_indexer == array_len)
                 return intcount;
             
@@ -184,12 +185,12 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
     */
    unsigned int packetsadded = 0, array_indexer = 0;
 
-    for(int i = 0; i < packets_len; i++){           //need to generate Fragment Offset, Packet Length and Checksum
+    for(unsigned int i = 0; i < packets_len; i++){           //need to generate Fragment Offset, Packet Length and Checksum
     packets[i] = malloc(15+max_payload);
         packets[i][0] = (src_addr >> 20);
         packets[i][1] = (src_addr >> 12);
         packets[i][2] = (src_addr >> 4);
-        packets[i][3] = (src_addr & 0xF0)<<4 | (dest_addr >> 24) & 0xF;                  // end src_addr
+        packets[i][3] = (src_addr& 0xF0 )<<4 | (dest_addr >> 24) & 0xF;                  // end src_addr
         packets[i][3] = (dest_addr >> 16) & 0x0F;                 
         packets[i][4] = (dest_addr >> 24);
         packets[i][5] = (dest_addr >> 8);
@@ -203,7 +204,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         //skip checksum for end
         packets[i][15] = (compression_scheme << 6) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
           
-            for(int e = 16; e < 15+max_payload; e+=4){          //enter payload
+            for(unsigned int e = 16; e < 15+max_payload; e+=4){          //enter payload
                 if(array_indexer >= array_len){
                     break;
                 }
