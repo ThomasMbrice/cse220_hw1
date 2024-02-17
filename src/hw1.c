@@ -112,7 +112,6 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
     bit_finder(packet, 4) + bit_finder(packet, 5) + bit_finder(packet, 6) + // deleted 7 
     bit_finder(packet, 8) + bit_finder(packet, 9));
 
-        printf("sum1 %d \n", sum);
 
     for(int i = 16; i < length; i+=4){
         sum += abs((int)(packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
