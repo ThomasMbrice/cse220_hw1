@@ -151,7 +151,7 @@ unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets
                 offseter = i;
                 break;
             }
-        }                                       //rewrite this extremely ineffiecnt
+        }                                       //rewrite this extremely poor 
 
         if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
 
@@ -159,9 +159,9 @@ unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets
             if(array_indexer == array_len)
                 return intcount;
             
-            array[array_indexer] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
+            array[array_indexer++] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
             | packets[offseter][i+2] << 8 | packets[offseter][i+3]); 
-            
+        
             intcount++;
             }
         }

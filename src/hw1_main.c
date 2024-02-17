@@ -4,30 +4,20 @@
 
 
 int  main() {
-	/*
+	
+     #include "reconstruct_array_sf_args05.h"
     unsigned int elements_written = reconstruct_array_sf((unsigned char **)packets, sizeof(packets)/sizeof(packets[0]), 
         reconstructed_array, sizeof(reconstructed_array) / sizeof(reconstructed_array[0]));
+   
 
-	print_packet_sf(packets[0]);
-	printf("calc checksum 		%d ", compute_checksum_sf(packets[0]));
-	printf("\n \n \n ");
-	//print_packet_sf(packets[1]);
-	//	printf("calc checksum 		%d ", compute_checksum_sf(packets[1]));
-	//	printf("\n \n \n ");
-	//print_packet_sf(packets[2]);
-	//	printf("calc checksum 		%d ", compute_checksum_sf(packets[2]));
-	//
-	//	printf("\n \n \n ");
-	print_packet_sf(packets[3]);
-		printf("calc checksum 		%d \n", compute_checksum_sf(packets[3]));
-
+	
 
 	
 
     (void)elements_written;
     (void)expected_num_elements;
 	(void)expected_array;
-	*/
+	
     return 0;
 }
 
