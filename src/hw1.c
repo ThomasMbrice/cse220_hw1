@@ -177,33 +177,51 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
                           unsigned int max_payload, unsigned int src_addr, unsigned int dest_addr,
                           unsigned int src_port, unsigned int dest_port, unsigned int maximum_hop_count,
                           unsigned int compression_scheme, unsigned int traffic_class){
-   
+   /*
     for(int i = 0; i < packets_len; i++)            //allocates memory for packets
-        packets[i] = malloc(16+max_payload);
+        packets[i] = malloc(15+max_payload);
     
+    */
+   unsigned int packetsadded = 0, array_indexer = 0;
+
     for(int i = 0; i < packets_len; i++){           //need to generate Fragment Offset, Packet Length and Checksum
-        packets[i][0] = (src_addr >> 28) & 0xFF;
-        packets[i][1] = (src_addr >> 20) & 0xFF;
-        packets[i][2] = (src_addr >> 12) & 0xFF;
-        packets[i][3] = (src_addr >> 4) & 0xF0;                  // end src_addr
-        packets[i][3] = (dest_addr >> 28) & 0x0F;                  // will this work out???
-        packets[i][4] = (dest_addr >> 24) & 0xFF;
-        packets[i][5] = (dest_addr >> 16) & 0xFF;
-        packets[i][6] = (dest_addr >> 8) & 0xFF;                   // end dest_addr
-        packets[i][7] = (src_port >> 4) & 0xF0;                    // end src_port
-        packets[i][7] = (dest_port >> 4) & 0x0F;                    // end dest_port
-        packets[i][8] = (i >> 14) & 0xFF;
-        packets[i][9] = (i >> 6) & 0xFC;                        
-        packets[i][9] = (i >> 2) & 0xFC;
+    packets[i] = malloc(15+max_payload);
+        packets[i][0] = (src_addr >> 20);
+        packets[i][1] = (src_addr >> 12);
+        packets[i][2] = (src_addr >> 4);
+        packets[i][3] = (src_addr & 0xF0)<<4 | (dest_addr >> 24) & 0xF;                  // end src_addr
+        packets[i][3] = (dest_addr >> 16) & 0x0F;                 
+        packets[i][4] = (dest_addr >> 24);
+        packets[i][5] = (dest_addr >> 8);
+        packets[i][6] = dest_addr;                                               // end dest_addr
+        packets[i][7] = (src_port << 4) | (dest_port & 0xF);                    // end src_port | end dest_port
+        packets[i][8] = ((i*20) >> 14);
+        packets[i][9] = (((i*20) << 6) & 0xFC) | (((15+max_payload) >> 14) & 0x3);      //end offset
+        packets[i][10] = ((15+max_payload) >> 12);
+        packets[i][11] = ((15+max_payload) << 4) | (maximum_hop_count >>12); //end length
+        packets[i][12] = ((maximum_hop_count >> 7) << 7);                         //end hopcount
+        //skip checksum for end
+        packets[i][15] = (compression_scheme << 6) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
+          
+            for(int e = 16; e < 15+max_payload; e+=4){          //enter payload
+                if(array_indexer >= array_len){
+                    break;
+                }
+                packets[i][e] = array[array_indexer] >> 24 ;
+                packets[i][e+1] = array[array_indexer] >> 16;
+                packets[i][e+2] = array[array_indexer] >> 8;
+                packets[i][e+3] = array[array_indexer++];
+            }
+        unsigned char checksum = compute_checksum_sf(packets[i]);        //checksum time
+        packets[i][12] = (checksum >> 23) & 0x7F;
+        packets[i][13] = (checksum >> 16);
+        packets[i][14] = checksum;
 
-                                                                                
+    packetsadded++;                                         //iterate numpackets added
+    print_packet_sf(packets[i]);   
+    printf("\n \n \n") ;                                                                 
     }
-    
-
-
-
-    
-    return packets_len;
+    return packetsadded;
 }
 
 void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len) {
