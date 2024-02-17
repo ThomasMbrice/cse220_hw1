@@ -23,7 +23,7 @@ void print_packet_sf(unsigned char packet[])
         if(i+4 < length)
         printf("%d ", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]));
         else  
-        printf("%d", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3])); // same print just without a space
+        printf("%d\n", ((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3])); // same print just without a space
     }
 }
 
@@ -108,15 +108,19 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 {
     int length = bit_finder(packet,5), sum = 0, payload = 0;//, checklength = bit_finder(packet,7);
 
-    sum = bit_finder(packet, 0) + bit_finder(packet, 1) + bit_finder(packet, 2) + bit_finder(packet, 3)+
+    sum = (bit_finder(packet, 0) + bit_finder(packet, 1) + bit_finder(packet, 2) + bit_finder(packet, 3)+
     bit_finder(packet, 4) + bit_finder(packet, 5) + bit_finder(packet, 6) + // deleted 7 
-    bit_finder(packet, 8) + bit_finder(packet, 9);
+    bit_finder(packet, 8) + bit_finder(packet, 9));
+
+        printf("sum1 %d \n", sum);
 
     for(int i = 16; i < length; i+=4){
-        sum += abs((packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
+        sum += abs((int)(packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
     }
 
-    return sum % ((1<<23)-1);
+    printf("sum2 %d \n", sum);
+
+    return (sum % ((1 << 23) - 1));
 }
 
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
