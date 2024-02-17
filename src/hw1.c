@@ -2,6 +2,7 @@
 
 unsigned int payload_finder(unsigned char *packet, int length);
 unsigned int bit_finder(unsigned char packet[], int section);
+void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len);
 
 void print_packet_sf(unsigned char packet[])
 {
@@ -130,41 +131,39 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
 {
-    int check1 = 0, offsetcheck = 0, offseter = 0, array_indexer = 0, intcount = 0;     //triggers loop not to overrite due to corrupted package
+    int check1 = 0, offsetcheck = 0, offsetgrabber_indexer = 0, offseter = 0,
+     array_indexer = 0, intcount = 0;     
+    unsigned fragoffset_grabber[packets_len];
 
-    for(int e = 0; e< packets_len; e++){
+
+    for(int e = 0; e < packets_len; e++){
         
-        for(int i = 0; i < packets_len; i++){               //finds correct packet in order 0-n
-            if(bit_finder(packets[i],4) == offsetcheck){
+
+        for(int i = 0; i < packets_len; i++){               //finds correct order of packets
+            fragoffset_grabber[i] =  bit_finder(packets[i],4);
+        }
+        
+        bubble_sort(fragoffset_grabber, packets_len);               //sorts fragmantations  
+
+        for(int i = 0; i < packets_len; i++){                   //finds correct packet in order 0-n
+            if(fragoffset_grabber[offsetgrabber_indexer] == bit_finder(packets[i],4)){
+                offsetgrabber_indexer++;
                 offseter = i;
                 break;
             }
-        }
-        int payloadleng = bit_finder(packets[offseter],5)-16, payloadindex= 0;
-        unsigned int payload[bit_finder(packets[offseter],5)-16]; //creates payload array
+        }                                       //rewrite this extremely ineffiecnt
 
         if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
 
-
-        for(int i = 16; i < bit_finder(packets[offseter],5); i+=4){                   //creates values for  payload
-        if(array_indexer == array_len)
-        break;
-
-        array[array_indexer++] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
-        | packets[offseter][i+2] << 8 | packets[offseter][i+3]); 
-        intcount++;
-        }
-        /*
-        for(int i = 0 ; i < sizeof(payload); i++){
-            if(array_indexer == array_len){                                      //ends program
+            for(int i = 16; i < bit_finder(packets[offseter],5); i+=4){    //creates values for  payload
+            if(array_indexer == array_len)
                 return intcount;
-            }
-            else{
-            array[array_indexer++] = payload[i];            ///???????????????? // copies correct payload to array
+            
+            array[array_indexer] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
+            | packets[offseter][i+2] << 8 | packets[offseter][i+3]); 
+            
             intcount++;
-            }   
-        }
-        */
+            }
         }
         else{
             array_indexer += (bit_finder(packets[offseter],5)-16);          // skips over values bec they are corrupted
@@ -205,4 +204,16 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
 
     
     return packets_len;
+}
+
+void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len) {
+    for (unsigned int i = 0; i < len - 1; i++) {
+        for (unsigned int j = 0; j < len - i - 1; j++) {
+            if (fragoffset_grabber[j] > fragoffset_grabber[j + 1]) {
+                unsigned int temp = fragoffset_grabber[j];
+                fragoffset_grabber[j] = fragoffset_grabber[j + 1];
+                fragoffset_grabber[j + 1] = temp;
+            }
+        }
+    }
 }
