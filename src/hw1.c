@@ -118,7 +118,6 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
         sum += abs((int)(packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
     }
 
-    printf("sum2 %d \n", sum);
 
     return (sum % ((1 << 23) - 1));
 }
