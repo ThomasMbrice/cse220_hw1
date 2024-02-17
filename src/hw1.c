@@ -108,10 +108,16 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 {
     int length = bit_finder(packet,5), sum = 0, payload = 0;//, checklength = bit_finder(packet,7);
 
-    sum = (bit_finder(packet, 0) + bit_finder(packet, 1) + bit_finder(packet, 2) + bit_finder(packet, 3)+
-    bit_finder(packet, 4) + bit_finder(packet, 5) + bit_finder(packet, 6) + // deleted 7 
-    bit_finder(packet, 8) + bit_finder(packet, 9));
-
+    sum += bit_finder(packet, 0);
+    sum += bit_finder(packet, 1);
+    sum += bit_finder(packet, 2);
+    sum += bit_finder(packet, 3);
+    sum += bit_finder(packet, 4);           // ask TA this doesnt make sense
+    sum += bit_finder(packet, 5);
+    sum += bit_finder(packet, 6);
+    //skip checksum
+    sum += bit_finder(packet, 8);
+    sum += bit_finder(packet, 9);
 
     for(int i = 16; i < length; i+=4){
         sum += abs((int)(packet[i] << 24) | packet[i+1] << 16 | packet[i+2] << 8 | packet[i+3]);
@@ -121,30 +127,34 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
     return (sum % ((1 << 23) - 1));
 }
 
+
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
 {
     int check1 = 0, offsetcheck = 0, offseter = 0, array_indexer = 0, intcount = 0;     //triggers loop not to overrite due to corrupted package
 
-    for(int i = 0; i< packets_len; i++){
+    for(int e = 0; e< packets_len; e++){
         
         for(int i = 0; i < packets_len; i++){               //finds correct packet in order 0-n
-            if(bit_finder(packets[i],4) == offsetcheck)
+            if(bit_finder(packets[i],4) == offsetcheck){
                 offseter = i;
+                break;
+            }
         }
         int payloadleng = bit_finder(packets[offseter],5)-16, payloadindex= 0;
         unsigned int payload[bit_finder(packets[offseter],5)-16]; //creates payload array
 
-        if(bit_finder(packets[i],7) != compute_checksum_sf(packets[i])){ //checks corrupted packets
+        if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
 
 
         for(int i = 16; i < bit_finder(packets[offseter],5); i+=4){                   //creates values for  payload
-        if(payloadindex == payloadleng)
+        if(array_indexer == array_len)
         break;
 
-        payload[payloadindex++] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
+        array[array_indexer++] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
         | packets[offseter][i+2] << 8 | packets[offseter][i+3]); 
+        intcount++;
         }
-
+        /*
         for(int i = 0 ; i < sizeof(payload); i++){
             if(array_indexer == array_len){                                      //ends program
                 return intcount;
@@ -152,12 +162,12 @@ unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets
             else{
             array[array_indexer++] = payload[i];            ///???????????????? // copies correct payload to array
             intcount++;
-            }
+            }   
         }
-        
+        */
         }
         else{
-            array_indexer += (bit_finder(packets[offseter],5)-15);          // skips over values bec they are corrupted
+            array_indexer += (bit_finder(packets[offseter],5)-16);          // skips over values bec they are corrupted
         }
         offsetcheck++;
     }
