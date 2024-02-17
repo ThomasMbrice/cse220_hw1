@@ -121,8 +121,8 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
     sum += (unsigned int)bit_finder(packet, 9);
 
     for(unsigned int i = 16; i < length; i+=4){
-        sum += ((unsigned int)packet[i] << 24) | ((unsigned int)packet[i+1] << 16) 
-        | ((unsigned int)packet[i+2] << 8) | (unsigned int)packet[i+3];
+        sum += abs(((unsigned int)packet[i] << 24) | ((unsigned int)packet[i+1] << 16) 
+        | ((unsigned int)packet[i+2] << 8) | (unsigned int)packet[i+3]);
     }
 
 
