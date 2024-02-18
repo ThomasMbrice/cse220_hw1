@@ -181,7 +181,6 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][6] = dest_addr & 0xFF;
         packets[i][7] = (src_port << 4) | (dest_port & 0xF);                    // end src_port | end dest_port
         //length checkd at end
-        packets[i][12] = ((maximum_hop_count & 0x1) << 7);                         //end hopcount
         //skip checksum for end
         packets[i][15] = (compression_scheme << 6) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
           
@@ -195,6 +194,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
                 packets[i][e+3] = array[array_indexer++] & 0xFF;
                 payloads_added++;
             }
+        //printf("payloads %d \n", payloads_added);
         packets[i][8] = (((i*4*payloads_added)) >> 6) & 0xFF ;                         //start offset
         packets[i][9] = ((i*4*payloads_added) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
         packets[i][10] = ((16+(payloads_added*4)) >> 4);                   // adds length
@@ -202,19 +202,17 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
 
 
 
-        unsigned char checksum = compute_checksum_sf(packets[i]);        //checksum time
-        packets[i][12] = (checksum >> 16) & 0x7F;
-        packets[i][13] = (checksum >> 8);
+        unsigned int checksum = compute_checksum_sf(packets[i]);        //checksum time
+        packets[i][12] =  ((maximum_hop_count & 0x1) << 7) | ((checksum >> 16) & 0x7F);     //end hop count
+        packets[i][13] = (checksum >> 8) & 0xFF;
         packets[i][14] = checksum & 0xFF;
 
 
-    packetsadded++;                                         //iterate numpackets added                
+    packetsadded++;                                         //iterate numpackets added
+    //print_packet_sf(packets[i]);   
+    //printf("\n \n \n") ;                 
     }
 
     return packetsadded;
 }
-
-
-
-
 
