@@ -182,7 +182,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][7] = (src_port << 4) | (dest_port & 0xF);                    // end src_port | end dest_port
         //length checkd at end
         //skip checksum for end
-        packets[i][15] = ((compression_scheme & 0x3) << 6 ) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
+        packets[i][15] = (((compression_scheme >>6) & 0x3) << 6 ) | ((traffic_class>>2) & 0x3F);    //end compression_scheme traffic_class
           
             for(unsigned int e = 16; e < 15+max_payload; e+=4){          //enter payload
                 if(array_indexer >= array_len){
