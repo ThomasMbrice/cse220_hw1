@@ -133,47 +133,48 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
 {
-    unsigned int offsetcheck = 0, offsetgrabber_indexer = 0, offseter = 0,
-     array_indexer = 0, intcount = 0;     
-    unsigned fragoffset_grabber[packets_len];
+    unsigned int intcount = 0;     
+
+    /*
+    for(unsigned int i = 0; i < packets_len; i++){      //delete this when done
+    printf("\n");
+    print_packet_sf(packets[i]);
+    printf("\n");
+    }
+    */
 
 
-    for(unsigned int e = 0; e < packets_len; e++){
-        
+    for(unsigned int e = 0; e < packets_len; e++){   
 
-        for(unsigned int i = 0; i < packets_len; i++){               //finds correct order of packets
-            fragoffset_grabber[i] =  bit_finder(packets[i],4);
-        }
-        
-        bubble_sort(fragoffset_grabber, packets_len);               //sorts fragmantations  
 
-        for(unsigned int i = 0; i < packets_len; i++){                   //finds correct packet in order 0-n
-            if(fragoffset_grabber[offsetgrabber_indexer] == bit_finder(packets[i],4)){
-                offsetgrabber_indexer++;
-                offseter = i;
-                break;
-            }
-        }                                       //rewrite this extremely poor 
 
         if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
-
-            for(unsigned int i = 16; i < bit_finder(packets[offseter],5); i+=4){    //creates values for  payload
-            if(array_indexer == array_len)
-                return intcount;
             
-            array[array_indexer++] = ((packets[offseter][i] << 24) | packets[offseter][i+1] << 16 
-            | packets[offseter][i+2] << 8 | packets[offseter][i+3]); 
+            unsigned int rewrite_index = (bit_finder(packets[e], 4)/4);
+
+            for(unsigned int i = 16; i < bit_finder(packets[e],5); i+=4){    //creates values for  payload
+            if(rewrite_index >= array_len){
+                break;
+            } 
+            
+            array[rewrite_index++] = ((packets[e][i] << 24) | packets[e][i+1] << 16 
+            | packets[e][i+2] << 8 | packets[e][i+3]); 
         
             intcount++;
             }
         }
-        else{
-            array_indexer += (bit_finder(packets[offseter],5)-16);          // skips over values bec they are corrupted
-        }
-        offsetcheck++;
     }
+    /*
+    for(unsigned int i = 0; i < array_len; i++){      //delete this when done
+    printf("        %d", array[i]);
+    printf("\n");
+    }
+    */
+
     return intcount;
 }
+
+
 
 unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned char *packets[], unsigned int packets_len,
                           unsigned int max_payload, unsigned int src_addr, unsigned int dest_addr,
