@@ -4,7 +4,7 @@ unsigned int bit_finder(unsigned char packet[], int section);
 void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len);
 
 void print_packet_sf(unsigned char packet[])
-{
+{   //done
     unsigned int length = bit_finder(packet, 5);
 
     printf("Source Address: %d\n", bit_finder(packet, 0));
@@ -105,14 +105,14 @@ unsigned int bit_finder(unsigned char packet[], int section){
 }
 
 unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
-{
+{   //done
     unsigned int length = bit_finder(packet,5), sum = 0;//, checklength = bit_finder(packet,7);
 
     sum += (unsigned int)bit_finder(packet, 0);
     sum += (unsigned int)bit_finder(packet, 1);
     sum += (unsigned int)bit_finder(packet, 2);
     sum += (unsigned int)bit_finder(packet, 3);
-    sum += (unsigned int)bit_finder(packet, 4);           // ask TA this doesnt make sense
+    sum += (unsigned int)bit_finder(packet, 4);          
     sum += (unsigned int)bit_finder(packet, 5);
     sum += (unsigned int)bit_finder(packet, 6);
     //skip checksum
@@ -132,45 +132,27 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
 
 
 unsigned int reconstruct_array_sf(unsigned char *packets[], unsigned int packets_len, int *array, unsigned int array_len) 
-{
-    unsigned int intcount = 0;     
-
-    /*
-    for(unsigned int i = 0; i < packets_len; i++){      //delete this when done
-    printf("\n");
-    print_packet_sf(packets[i]);
-    printf("\n");
-    }
-    */
-
+{   //done
+    unsigned int intcount = 0;                                      //counts ints
 
     for(unsigned int e = 0; e < packets_len; e++){   
 
-
-
         if(bit_finder(packets[e],7) == compute_checksum_sf(packets[e])){ //checks corrupted packets
             
-            unsigned int rewrite_index = (bit_finder(packets[e], 4)/4);
+            unsigned int rewrite_index = (bit_finder(packets[e], 4)/4);        //uses offset to calculate where in array should write
 
             for(unsigned int i = 16; i < bit_finder(packets[e],5); i+=4){    //creates values for  payload
-            if(rewrite_index >= array_len){
+            if(rewrite_index >= array_len){                                 //stops overflow
                 break;
             } 
             
-            array[rewrite_index++] = ((packets[e][i] << 24) | packets[e][i+1] << 16 
+            array[rewrite_index++] = ((packets[e][i] << 24) | packets[e][i+1] << 16 //writes to array
             | packets[e][i+2] << 8 | packets[e][i+3]); 
         
             intcount++;
-            }
+            }   
         }
     }
-    /*
-    for(unsigned int i = 0; i < array_len; i++){      //delete this when done
-    printf("        %d", array[i]);
-    printf("\n");
-    }
-    */
-
     return intcount;
 }
 
@@ -185,24 +167,21 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i] = malloc(15+max_payload);
     
     */
-   unsigned int packetsadded = 0, array_indexer = 0;
+   unsigned int packetsadded = 0, array_indexer = 0, payloads_added = 0;
 
     for(unsigned int i = 0; i < packets_len; i++){           //need to generate Fragment Offset, Packet Length and Checksum
+    payloads_added = 0;
     packets[i] = malloc(15+max_payload);
-        packets[i][0] = (src_addr >> 20);
-        packets[i][1] = (src_addr >> 12);
-        packets[i][2] = (src_addr >> 4);
-        packets[i][3] = (src_addr& 0xF0 )<<4 | ((dest_addr >> 24) & 0xF);                  // end src_addr
-        packets[i][3] = (dest_addr >> 16) & 0x0F;                 
-        packets[i][4] = (dest_addr >> 24);
-        packets[i][5] = (dest_addr >> 8);
-        packets[i][6] = dest_addr;                                               // end dest_addr
+        packets[i][0] = (src_addr >> 20) & 0xFF;
+        packets[i][1] = (src_addr >> 12) & 0xFF;
+        packets[i][2] = (src_addr >> 4) & 0xFF;
+        packets[i][3] = ((src_addr & 0xF) << 4) | ((dest_addr >> 24) & 0xF);                  // end src_addr
+        packets[i][4] = (dest_addr >> 16) & 0xFF;                 
+        packets[i][5] = (dest_addr >> 8) & 0xFF;
+        packets[i][6] = dest_addr & 0xFF;
         packets[i][7] = (src_port << 4) | (dest_port & 0xF);                    // end src_port | end dest_port
-        packets[i][8] = ((i*20) >> 14);
-        packets[i][9] = (((i*20) << 6) & 0xFC) | (((15+max_payload) >> 14) & 0x3);      //end offset
-        packets[i][10] = ((15+max_payload) >> 12);
-        packets[i][11] = ((15+max_payload) << 4) | (maximum_hop_count >>12); //end length
-        packets[i][12] = ((maximum_hop_count >> 7) << 7);                         //end hopcount
+        //length checkd at end
+        packets[i][12] = ((maximum_hop_count & 0x1) << 7);                         //end hopcount
         //skip checksum for end
         packets[i][15] = (compression_scheme << 6) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
           
@@ -210,31 +189,28 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
                 if(array_indexer >= array_len){
                     break;
                 }
-                packets[i][e] = array[array_indexer] >> 24 ;
-                packets[i][e+1] = array[array_indexer] >> 16;
-                packets[i][e+2] = array[array_indexer] >> 8;
-                packets[i][e+3] = array[array_indexer++];
+                packets[i][e] = array[array_indexer] >> 24 & 0xFF;
+                packets[i][e+1] = array[array_indexer] >> 16 & 0xFF;
+                packets[i][e+2] = array[array_indexer] >> 8 & 0xFF;
+                packets[i][e+3] = array[array_indexer++] & 0xFF;
+                payloads_added++;
             }
-        unsigned char checksum = compute_checksum_sf(packets[i]);        //checksum time
-        packets[i][12] = (checksum >> 23) & 0x7F;
-        packets[i][13] = (checksum >> 16);
-        packets[i][14] = checksum;
+        packets[i][8] = (((i*4*payloads_added)) >> 6) & 0xFF ;                         //start offset
+        packets[i][9] = ((i*4*payloads_added) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
+        packets[i][10] = ((16+(payloads_added*4)) >> 4);                   // adds length
+        packets[i][11] = ((16+(payloads_added*4)) << 4) | ((maximum_hop_count >> 1) & 0xF); //end length
 
-    packetsadded++;                                         //iterate numpackets added
-    print_packet_sf(packets[i]);   
-    printf("\n \n \n") ;                                                                 
+
+
+        unsigned char checksum = compute_checksum_sf(packets[i]);        //checksum time
+        packets[i][12] = (checksum >> 16) & 0x7F;
+        packets[i][13] = (checksum >> 8);
+        packets[i][14] = checksum & 0xFF;
+
+
+    packetsadded++;                                         //iterate numpackets added                
     }
+
     return packetsadded;
 }
 
-void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len) {
-    for (unsigned int i = 0; i < len - 1; i++) {
-        for (unsigned int j = 0; j < len - i - 1; j++) {
-            if (fragoffset_grabber[j] > fragoffset_grabber[j + 1]) {
-                unsigned int temp = fragoffset_grabber[j];
-                fragoffset_grabber[j] = fragoffset_grabber[j + 1];
-                fragoffset_grabber[j + 1] = temp;
-            }
-        }
-    }
-}
