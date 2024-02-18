@@ -194,7 +194,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
                 packets[i][e+3] = array[array_indexer++] & 0xFF;
                 payloads_added++;
             }
-        printf("payloads %d \n", payloads_added);
+        //printf("payloads %d \n", payloads_added);
         packets[i][8] = (((i*4*payloads_added)) >> 6) & 0xFF ;                         //start offset
         packets[i][9] = ((i*4*payloads_added) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
         packets[i][10] = ((16+(payloads_added*4)) >> 4);                   // adds length
@@ -209,8 +209,8 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
 
 
     packetsadded++;                                         //iterate numpackets added
-    print_packet_sf(packets[i]);   
-    printf("\n \n \n") ;                 
+    //print_packet_sf(packets[i]);   
+    //printf("\n \n \n") ;                 
     }
 
     return packetsadded;
