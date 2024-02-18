@@ -1,6 +1,5 @@
 #include "hw1.h"
 
-unsigned int payload_finder(unsigned char *packet, int length);
 unsigned int bit_finder(unsigned char packet[], int section);
 void bubble_sort(unsigned int fragoffset_grabber[], unsigned int len);
 
@@ -121,12 +120,14 @@ unsigned int compute_checksum_sf(unsigned char packet[])        //corrected
     sum += (unsigned int)bit_finder(packet, 9);
 
     for(unsigned int i = 16; i < length; i+=4){
-        sum += abs(((unsigned int)packet[i] << 24) | ((unsigned int)packet[i+1] << 16) 
-        | ((unsigned int)packet[i+2] << 8) | (unsigned int)packet[i+3]);
+        sum += (unsigned int)abs((packet[i] << 24) | (packet[i+1] << 16) 
+        | (packet[i+2] << 8) | packet[i+3]);
     }
 
 
-    return (unsigned int)(sum % ((unsigned int)((1 << 23) - 1)));
+     
+    unsigned int checksum = sum % ((1 << 23) - 1);
+    return checksum;
 }
 
 
@@ -190,7 +191,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][0] = (src_addr >> 20);
         packets[i][1] = (src_addr >> 12);
         packets[i][2] = (src_addr >> 4);
-        packets[i][3] = (src_addr& 0xF0 )<<4 | (dest_addr >> 24) & 0xF;                  // end src_addr
+        packets[i][3] = (src_addr& 0xF0 )<<4 | ((dest_addr >> 24) & 0xF);                  // end src_addr
         packets[i][3] = (dest_addr >> 16) & 0x0F;                 
         packets[i][4] = (dest_addr >> 24);
         packets[i][5] = (dest_addr >> 8);
