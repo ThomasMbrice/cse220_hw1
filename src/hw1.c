@@ -182,19 +182,17 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         //skip checksum for end
         packets[i][15] = ((compression_scheme & 0x3) << 6 ) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
           
-        unsigned int j = 16;
-        while(j < (16+max_payload)){
-            if(array_indexer > array_len){
-                break;
+        for(unsigned int e = 16; e < 15+max_payload; e+=4){          //enter payload
+                if(array_indexer >= array_len){
+                    break;
+                }
+                packets[i][e] = array[array_indexer] >> 24 & 0xFF;
+                packets[i][e+1] = array[array_indexer] >> 16 & 0xFF;
+                packets[i][e+2] = array[array_indexer] >> 8 & 0xFF;
+                packets[i][e+3] = array[array_indexer++] & 0xFF;
+                payloads_added++;
             }
-            for (int k = 24; k >= 0; k -= 8) {
-                //printf("%d ", k);
-                packets[i][j++] = (array[array_indexer] >> k) & 0xFF;
-            }
-        // printf("added value %d  and index of array %d \n", array[array_indexer], array_indexer);
-        array_indexer++;
-        payloads_added++;
-        }
+        
         //printf("payloads %d \n", payloads_added);
         packets[i][8] = (((i*4*payloads_added)) >> 6) & 0xFF ;                         //start offset
         packets[i][9] = ((i*4*payloads_added) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
@@ -207,6 +205,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][12] =  ((maximum_hop_count & 0x1) << 7) | ((checksum >> 16) & 0x7F);     //end hop count
         packets[i][13] = (checksum >> 8) & 0xFF;
         packets[i][14] = checksum & 0xFF;
+        
 
 
     packetsadded++;                                         //iterate numpackets added
