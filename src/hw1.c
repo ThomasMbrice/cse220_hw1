@@ -169,7 +169,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
 
     for(unsigned int i = 0; i < packets_len; i++){           //need to generate Fragment Offset, Packet Length and Checksum
     payloads_added = 0;
-    packets[i] = malloc(15+max_payload);
+    packets[i] = malloc(16+max_payload);
         packets[i][0] = (src_addr >> 20) & 0xFF;
         packets[i][1] = (src_addr >> 12) & 0xFF;
         packets[i][2] = (src_addr >> 4) & 0xFF;
@@ -178,6 +178,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][5] = (dest_addr >> 8) & 0xFF;
         packets[i][6] = dest_addr & 0xFF;
         packets[i][7] = (src_port << 4) | (dest_port & 0xF);                    // end src_port | end dest_port
+        packets[i][12] =  ((maximum_hop_count & 0x1) << 7);
         //length checkd at end
         //skip checksum for end
         packets[i][15] = ((compression_scheme & 0x3) << 6 ) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
@@ -202,15 +203,15 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
 
 
         unsigned int checksum = compute_checksum_sf(packets[i]);        //checksum time
-        packets[i][12] =  ((maximum_hop_count & 0x1) << 7) | ((checksum >> 16) & 0x7F);     //end hop count
+        packets[i][12] = packets[i][12] | ((checksum >> 16) & 0x7F);     //end hop count
         packets[i][13] = (checksum >> 8) & 0xFF;
         packets[i][14] = checksum & 0xFF;
         
 
 
     packetsadded++;                                         //iterate numpackets added
-    print_packet_sf(packets[i]);   
-    printf("\n \n \n") ;                 
+    //print_packet_sf(packets[i]);   
+    //printf("\n \n \n") ;                 
     }
 
     return packetsadded;
