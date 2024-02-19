@@ -195,8 +195,8 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
             }
         
         //printf("payloads %d \n", payloads_added);
-        packets[i][8] = (((i*4*payloads_added)) >> 6) & 0xFF ;                         //start offset
-        packets[i][9] = ((i*4*payloads_added) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
+        packets[i][8] = (((i*max_payload)) >> 6) & 0xFF ;                         //start offset
+        packets[i][9] = ((i*max_payload) & 0x3F) <<2 | (((16+(payloads_added*4)) >> 12) & 0x3);      //end offset
         packets[i][10] = ((16+(payloads_added*4)) >> 4);                   // adds length
         packets[i][11] = ((16+(payloads_added*4)) << 4) | ((maximum_hop_count >> 1) & 0xF); //end length
 
