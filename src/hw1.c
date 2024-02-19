@@ -214,7 +214,11 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
     //printf("\n \n \n") ;                 
     }
 
-    return packetsadded;
+    if(packets_len > packetsadded)
+        return packets_len;
+    else
+        return packetsadded;
+    
 }
 
 /*
