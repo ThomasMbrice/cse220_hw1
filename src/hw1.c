@@ -208,16 +208,15 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         packets[i][14] = checksum & 0xFF;
         
 
-
-    packetsadded++;                                         //iterate numpackets added
+    if(payloads_added > 0){
+    packetsadded++;        
+    }                                
+     //iterate numpackets added
     //print_packet_sf(packets[i]);   
     //printf("\n \n \n") ;                 
     }
-
-    if(packets_len > packetsadded)
-        return packets_len;
-    else
-        return packetsadded;
+    return packetsadded;
+    
     
 }
 
