@@ -183,7 +183,7 @@ unsigned int packetize_array_sf(int *array, unsigned int array_len, unsigned cha
         //skip checksum for end
         packets[i][15] = ((compression_scheme & 0x3) << 6 ) | (traffic_class & 0x3F);    //end compression_scheme traffic_class
           
-        for(unsigned int e = 16; e < 15+max_payload; e+=4){          //enter payload
+        for(unsigned int e = 16; e < 16+max_payload; e+=4){          //enter payload
                 if(array_indexer >= array_len){
                     break;
                 }
